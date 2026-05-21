@@ -4,68 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Compiler 101</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.min.js" integrity="sha512-hJEMjfR4ds7mXbBot3i/R+CsiyYpeWSezXul8uLBT8wXAHPUdhRgl4LLTtMGwjarftGKiQqK1v20XScm0ANTPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.css" integrity="sha512-7vaQ4LLdaXd2IuMd4MUQ6LRFIGbEwJI1aq6KYqL3RjbdQyUkRFhwZKmqmkBXurTFdGlx687lTN8FSJfX6Df8Gw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- CodeMirror core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/theme/dracula.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- CodeMirror language modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/clike/clike.min.js"   crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/python/python.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/rust/rust.min.js"     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Icons & fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/devicon/2.16.0/devicon.min.css">
-    <!-- C++ -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/clike/clike.min.js" integrity="sha512-jcF10R6LSoLddMx32eEitiBfJ8icHBobh0Z7fwVewrKmNBBGM0B09oG3yxxnkIYwilUsXBbIcRN5jfmc6vSt9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/theme/dracula.min.css" integrity="sha512-gFMl3u9d0xt3WR8ZeW05MWm3yZ+ZfgsBVXLSOiFz2xeVrZ8Neg0+V1kkRIo9LikyA/T9HuS91kDfc2XWse0K0A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Source+Code+Pro:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+
+    <!-- JSZip — used for "Save whole project" -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <link rel="stylesheet" href="style.css">
-    
 </head>
-    <body>
-        <div class="app-container">
-            <header class="toolbar">TOOLBAR
-                <button id="runButton" type="button"> Run ▶ </button>
-            </header>
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                <button id="toggle_retractabil"> « </button> 
-                <span class="menu-label">SIDEBAR</span>
-                <script>
-                    let varButton=document.getElementById("toggle_retractabil");
-                    let varAppContainer=document.querySelector(".app-container");
-                    varButton.addEventListener("click",function()
-                    {
-                        varAppContainer.classList.toggle("menu-closed");
-                    });
-                </script>
+<body>
+<div class="app-container">
+
+    <header class="toolbar">
+
+        <!-- SAVE split button -->
+        <div class="split-btn-group" id="saveSplitGroup">
+            <button class="split-main split-save" id="saveButton" type="button">
+                <i class="fa-solid fa-floppy-disk"></i> Save
+            </button>
+            <button class="split-arrow split-save" id="saveArrow" type="button" aria-label="Save options">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="split-dropdown" id="saveDropdown">
+                <button class="dropdown-item" data-action="save-single">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    <span>Save active tab</span>
+                    <small>Downloads the current file</small>
+                </button>
+                <button class="dropdown-item" data-action="save-project">
+                    <i class="fa-solid fa-file-zipper"></i>
+                    <span>Save whole project</span>
+                    <small>Downloads all files as .zip</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- RUN split button -->
+        <div class="split-btn-group" id="runSplitGroup">
+            <button class="split-main split-run" id="runButton" type="button">
+                <i class="fa-solid fa-play"></i> Run
+            </button>
+            <button class="split-arrow split-run" id="runArrow" type="button" aria-label="Run options">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="split-dropdown" id="runDropdown">
+                <button class="dropdown-item" data-action="run-single">
+                    <i class="fa-solid fa-file-code"></i>
+                    <span>Run active tab</span>
+                    <small>Compiles only the current file</small>
+                </button>
+                <button class="dropdown-item" data-action="run-project">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Run whole project</span>
+                    <small>Compiles all source files together</small>
+                </button>
+            </div>
+        </div>
+
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <button id="toggle_retractabil">«</button>
+            <span class="menu-label">SIDEBAR</span>
+            <script>
+                document.getElementById("toggle_retractabil").addEventListener("click", function() {
+                    document.querySelector(".app-container").classList.toggle("menu-closed");
+                });
+            </script>
+        </div>
+
+        <div class="sidebar-nav">
+
+            <!-- FILES section -->
+            <div class="group-title" id="filesToggle">
+                <i class="fa-solid fa-folder"></i>
+                <span>FILES</span>
+                <i class="fa-solid fa-chevron-down settings-arrow" id="filesArrow"></i>
+            </div>
+            <div class="settings-panel" id="filesPanel">
+                <div class="group-title" id="uploadFileBtn" style="padding-left:10px; margin:8px 0; opacity:0.85;">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <span>Upload File...</span>
                 </div>
-                <div class="sidebar-nav">
-                    <div class="group-title">
-                        <i class="fa-solid fa-folder"></i>
-                        <span>FILES</span>
-                    </div>
-                    <div class="group-title">
-                        <i class="devicon-cplusplus-plain"></i>
-                        <span>LANGUAGE</span>
-                    </div>
-                    <div class="group-title">
-                        <i class="fa-solid fa-gear"></i>
-                        <span>SETTINGS</span>
-                    </div>
-                    <div class="group-title">
-                        <i class="fa-solid fa-robot"></i>
-                        <span>Coming Soon...</span>
-                    </div>
+                <div id="filesList"></div>
+            </div>
+            <input type="file" id="fileInput" style="display:none;" accept=".cpp,.c,.h,.hpp,.py,.java,.rs,.js" multiple>
+
+            <!-- LANGUAGE section -->
+            <div class="group-title" id="languageToggle">
+                <i id="langIcon" class="devicon-cplusplus-plain"></i>
+                <span>LANGUAGE</span>
+                <i class="fa-solid fa-chevron-down settings-arrow" id="languageArrow"></i>
+            </div>
+            <div class="settings-panel" id="languagePanel">
+                <div class="lang-options" id="langOptions">
+                    <!-- populated by script.js -->
                 </div>
-            </aside>
-            <main class="editor">
-                <div class="editor-header">EDITOR</div>
-                <textarea id="editorSource" name="editorSource" title="Code editor for writing code">
-#include <iostream>
+            </div>
+
+            <!-- SETTINGS section -->
+            <div class="group-title settings-toggle" id="settingsToggle">
+                <i class="fa-solid fa-gear"></i>
+                <span>SETTINGS</span>
+                <i class="fa-solid fa-chevron-down settings-arrow" id="settingsArrow"></i>
+            </div>
+            <div class="settings-panel" id="settingsPanel">
+                <div class="settings-section-label">Font Family</div>
+                <div class="font-options">
+                    <button class="font-btn active" data-font="'JetBrains Mono', monospace">JetBrains Mono</button>
+                    <button class="font-btn" data-font="'Fira Code', monospace">Fira Code</button>
+                    <button class="font-btn" data-font="'Source Code Pro', monospace">Source Code Pro</button>
+                    <button class="font-btn" data-font="'Courier New', monospace">Courier New</button>
+                    <button class="font-btn" data-font="Consolas, monospace">Consolas</button>
+                    <button class="font-btn" data-font="'Comic Sans MS', cursive">Comic Sans</button>
+                    <button class="font-btn" data-font="Wingdings">Wingdings</button>
+                </div>
+                <div class="settings-section-label" style="margin-top:14px">
+                    Font Size — <span id="sizeDisplay">13px</span>
+                </div>
+                <div class="size-control">
+                    <span class="size-limit">10</span>
+                    <input type="range" id="sizeSlider" min="10" max="40" value="13" step="1">
+                    <span class="size-limit">40</span>
+                </div>
+            </div>
+
+            <!-- COMING SOON -->
+            <div class="group-title">
+                <i class="fa-solid fa-robot"></i>
+                <span>Coming Soon...</span>
+            </div>
+
+        </div>
+    </aside>
+
+    <main class="editor">
+        <div class="editor-header" id="tabsHeader">
+            <div class="tabs-container" id="tabsContainer"></div>
+            <div class="tab tab-static">EDITOR</div>
+        </div>
+        <textarea id="editorSource" name="editorSource" title="Code editor">
+#include &lt;iostream&gt;
 using namespace std;
 int main() {
-    cout << "Hello, World!" << endl;
+    cout &lt;&lt; "Hello, World!" &lt;&lt; endl;
     return 0;
-}
-                </textarea>
-            </main>
-            <div class="console" id="consoleOutput">CONSOLA</div>
-            <footer class="futer">@2025,December,Created by Suciu Dinu Ștefan</footer>
-        </div>
-    <script src="script.js"></script>
-    </body>
-</html>
+}</textarea>
+    </main>
+
+    <div class="console" id="consoleOutput">CONSOLA</div>
+    <footer class="futer">@2025, December — Created by Suciu Dinu Ștefan</footer>
+
+</div>
+<script src="script.js"></script>
+</body>
 </html>
