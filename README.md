@@ -126,21 +126,6 @@ docker build -t code-compiler-local .
 
 ---
 
-## ⚠️ Known Limitations
-
-- Only **C++** is supported at this time. Other languages return `"Limbaj nesuportat momentan."`.
-- No input (`stdin`) support — code that reads from `cin` will hang or fail.
-- No execution timeout — a long-running program will block the Docker container indefinitely.
-- Temporary `.cpp` files are written to the project root on the host machine.
-
----
-
-## 🔮 Roadmap
-
-- [ ] Support for more languages (Python, C, Java)
-- [ ] `stdin` input field in the UI
-- [ ] Execution timeout / resource limits on Docker containers
-- [ ] File management (open, save, multiple tabs)
 - [ ] AI assistant integration (Coming Soon in sidebar)
 
 ---
