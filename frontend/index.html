@@ -1,50 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Compiler 101</title>
 
-    <!-- CodeMirror core -->
+    <!-- CodeMirror — editorul de cod cu numerotare linii și syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/theme/dracula.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- CodeMirror language modes -->
+    <!-- Moduri de limbaj pentru CodeMirror (C/C++, Python, Rust) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/clike/clike.min.js"   crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/python/python.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/mode/rust/rust.min.js"     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <!-- Icons & fonts -->
+    <!-- Iconuri și fonturi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/devicon/2.16.0/devicon.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Source+Code+Pro:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
 
-    <!-- JSZip — used for "Save whole project" -->
+    <!-- JSZip — folosit la salvarea proiectului întreg ca .zip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app-container">
 
-    <header class="toolbar">
+<!-- Containerul principal — folosește CSS Grid pentru layout-ul întregii pagini -->
+<div id="container-principal">
 
-        <!-- SAVE split button -->
-        <div class="split-btn-group" id="saveSplitGroup">
-            <button class="split-main split-save" id="saveButton" type="button">
+    <!-- ── BARA DE SUS (toolbar) ─────────────────────────────── -->
+    <header id="bara-sus">
+
+        <!-- Buton split Salvare: click stânga = salvare rapidă, săgeată = meniu extins -->
+        <div class="grup-buton-split">
+            <button class="buton-principal buton-salvare" id="buton-salveaza" type="button">
                 <i class="fa-solid fa-floppy-disk"></i> Save
             </button>
-            <button class="split-arrow split-save" id="saveArrow" type="button" aria-label="Save options">
+            <button class="buton-sageata buton-salvare" id="sageata-salvare" type="button" aria-label="Optiuni salvare">
                 <i class="fa-solid fa-chevron-down"></i>
             </button>
-            <div class="split-dropdown" id="saveDropdown">
-                <button class="dropdown-item" data-action="save-single">
+            <div class="meniu-dropdown" id="dropdown-salvare">
+                <button class="optiune-dropdown" data-actiune="salveaza-fisier">
                     <i class="fa-solid fa-file-arrow-down"></i>
                     <span>Save active tab</span>
                     <small>Downloads the current file</small>
                 </button>
-                <button class="dropdown-item" data-action="save-project">
+                <button class="optiune-dropdown" data-actiune="salveaza-proiect">
                     <i class="fa-solid fa-file-zipper"></i>
                     <span>Save whole project</span>
                     <small>Downloads all files as .zip</small>
@@ -52,21 +55,21 @@
             </div>
         </div>
 
-        <!-- RUN split button -->
-        <div class="split-btn-group" id="runSplitGroup">
-            <button class="split-main split-run" id="runButton" type="button">
+        <!-- Buton split Rulare: click stânga = rulare fișier activ, săgeată = meniu extins -->
+        <div class="grup-buton-split">
+            <button class="buton-principal buton-rulare" id="buton-ruleaza" type="button">
                 <i class="fa-solid fa-play"></i> Run
             </button>
-            <button class="split-arrow split-run" id="runArrow" type="button" aria-label="Run options">
+            <button class="buton-sageata buton-rulare" id="sageata-rulare" type="button" aria-label="Optiuni rulare">
                 <i class="fa-solid fa-chevron-down"></i>
             </button>
-            <div class="split-dropdown" id="runDropdown">
-                <button class="dropdown-item" data-action="run-single">
+            <div class="meniu-dropdown" id="dropdown-rulare">
+                <button class="optiune-dropdown" data-actiune="ruleaza-fisier">
                     <i class="fa-solid fa-file-code"></i>
                     <span>Run active tab</span>
                     <small>Compiles only the current file</small>
                 </button>
-                <button class="dropdown-item" data-action="run-project">
+                <button class="optiune-dropdown" data-actiune="ruleaza-proiect">
                     <i class="fa-solid fa-layer-group"></i>
                     <span>Run whole project</span>
                     <small>Compiles all source files together</small>
@@ -76,100 +79,133 @@
 
     </header>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <button id="toggle_retractabil">«</button>
-            <span class="menu-label">SIDEBAR</span>
-            <script>
-                document.getElementById("toggle_retractabil").addEventListener("click", function() {
-                    document.querySelector(".app-container").classList.toggle("menu-closed");
-                });
-            </script>
+    <!-- ── BARA LATERALĂ (sidebar) ───────────────────────────── -->
+    <aside id="bara-laterala">
+
+        <!-- Antetul barei laterale cu butonul de restrângere -->
+        <div id="antet-bara-laterala">
+            <button id="buton-restrânge">«</button>
+            <span id="eticheta-meniu">SIDEBAR</span>
         </div>
 
-        <div class="sidebar-nav">
+        <!-- Navigarea principală din sidebar -->
+        <nav id="navigare-sidebar">
 
-            <!-- FILES section -->
-            <div class="group-title" id="filesToggle">
+            <!-- Secțiunea FILES — afișează fișierele din proiect -->
+            <div class="titlu-sectiune" id="toggle-fisiere">
                 <i class="fa-solid fa-folder"></i>
                 <span>FILES</span>
-                <i class="fa-solid fa-chevron-down settings-arrow" id="filesArrow"></i>
+                <i class="fa-solid fa-chevron-down sageata-sectiune" id="sageata-fisiere"></i>
             </div>
-            <div class="settings-panel" id="filesPanel">
-                <div class="group-title" id="uploadFileBtn" style="padding-left:10px; margin:8px 0; opacity:0.85;">
+            <div class="panou-sectiune" id="panou-fisiere">
+                <!-- Buton pentru încărcarea fișierelor de pe disc -->
+                <div class="titlu-sectiune buton-upload" id="buton-upload-fisier">
                     <i class="fa-solid fa-file-arrow-up"></i>
                     <span>Upload File...</span>
                 </div>
-                <div id="filesList"></div>
+                <!-- Lista fișierelor din proiect — populată dinamic din script.js -->
+                <div id="lista-fisiere"></div>
             </div>
-            <input type="file" id="fileInput" style="display:none;" accept=".cpp,.c,.h,.hpp,.py,.java,.rs,.js" multiple>
+            <!-- Input ascuns — declanșat programatic la click pe buton-upload-fisier -->
+            <input type="file" id="input-fisier" accept=".cpp,.c,.h,.hpp,.py,.java,.rs,.js" multiple>
 
-            <!-- LANGUAGE section -->
-            <div class="group-title" id="languageToggle">
-                <i id="langIcon" class="devicon-cplusplus-plain"></i>
+            <!-- Secțiunea LANGUAGE — selectarea limbajului de programare -->
+            <div class="titlu-sectiune" id="toggle-limbaj">
+                <i id="icona-limbaj" class="devicon-cplusplus-plain"></i>
                 <span>LANGUAGE</span>
-                <i class="fa-solid fa-chevron-down settings-arrow" id="languageArrow"></i>
+                <i class="fa-solid fa-chevron-down sageata-sectiune" id="sageata-limbaj"></i>
             </div>
-            <div class="settings-panel" id="languagePanel">
-                <div class="lang-options" id="langOptions">
-                    <!-- populated by script.js -->
-                </div>
+            <div class="panou-sectiune" id="panou-limbaj">
+                <!-- Butoanele de limbaj sunt generate dinamic în script.js -->
+                <div id="optiuni-limbaj"></div>
             </div>
 
-            <!-- SETTINGS section -->
-            <div class="group-title settings-toggle" id="settingsToggle">
+            <!-- Secțiunea SETTINGS — font și dimensiune text -->
+            <div class="titlu-sectiune" id="toggle-setari">
                 <i class="fa-solid fa-gear"></i>
                 <span>SETTINGS</span>
-                <i class="fa-solid fa-chevron-down settings-arrow" id="settingsArrow"></i>
+                <i class="fa-solid fa-chevron-down sageata-sectiune" id="sageata-setari"></i>
             </div>
-            <div class="settings-panel" id="settingsPanel">
-                <div class="settings-section-label">Font Family</div>
-                <div class="font-options">
-                    <button class="font-btn active" data-font="'JetBrains Mono', monospace">JetBrains Mono</button>
-                    <button class="font-btn" data-font="'Fira Code', monospace">Fira Code</button>
-                    <button class="font-btn" data-font="'Source Code Pro', monospace">Source Code Pro</button>
-                    <button class="font-btn" data-font="'Courier New', monospace">Courier New</button>
-                    <button class="font-btn" data-font="Consolas, monospace">Consolas</button>
-                    <button class="font-btn" data-font="'Comic Sans MS', cursive">Comic Sans</button>
-                    <button class="font-btn" data-font="Wingdings">Wingdings</button>
+            <div class="panou-sectiune" id="panou-setari">
+                <div class="eticheta-subsectiune">Font Family</div>
+                <div id="optiuni-font">
+                    <button class="buton-font activ" data-font="'JetBrains Mono', monospace">JetBrains Mono</button>
+                    <button class="buton-font" data-font="'Fira Code', monospace">Fira Code</button>
+                    <button class="buton-font" data-font="'Source Code Pro', monospace">Source Code Pro</button>
+                    <button class="buton-font" data-font="'Courier New', monospace">Courier New</button>
+                    <button class="buton-font" data-font="Consolas, monospace">Consolas</button>
+                    <button class="buton-font" data-font="'Comic Sans MS', cursive">Comic Sans</button>
+                    <button class="buton-font" data-font="Wingdings">Wingdings</button>
                 </div>
-                <div class="settings-section-label" style="margin-top:14px">
-                    Font Size — <span id="sizeDisplay">13px</span>
+                <!-- Slider pentru dimensiunea fontului — valoarea curentă afișată live -->
+                <div class="eticheta-subsectiune marime-titlu">
+                    Font Size — <span id="afisaj-marime">13px</span>
                 </div>
-                <div class="size-control">
-                    <span class="size-limit">10</span>
-                    <input type="range" id="sizeSlider" min="10" max="40" value="13" step="1">
-                    <span class="size-limit">40</span>
+                <div id="control-marime">
+                    <span class="limita-marime">10</span>
+                    <input type="range" id="slider-marime" min="10" max="40" value="13" step="1">
+                    <span class="limita-marime">40</span>
                 </div>
             </div>
 
-            <!-- COMING SOON -->
-            <div class="group-title">
+            <!-- Placeholder pentru funcționalități viitoare (AI assistant) -->
+            <div class="titlu-sectiune">
                 <i class="fa-solid fa-robot"></i>
                 <span>Coming Soon...</span>
             </div>
 
-        </div>
+        </nav>
     </aside>
 
-    <main class="editor">
-        <div class="editor-header" id="tabsHeader">
-            <div class="tabs-container" id="tabsContainer"></div>
+    <!-- ── ZONA EDITORULUI ────────────────────────────────────── -->
+    <main id="zona-editor">
+
+        <!-- Bara cu tab-uri deschise + eticheta statică "EDITOR" -->
+        <div id="bara-taburi">
+            <!-- Tab-urile fișierelor deschise sunt generate dinamic din script.js -->
+            <div id="container-taburi"></div>
+            <!-- Eticheta decorativă fixă — nu este interactivă -->
             <div class="tab tab-static">EDITOR</div>
         </div>
-        <textarea id="editorSource" name="editorSource" title="Code editor">
+
+        <!-- Textarea-ul inițial — CodeMirror îl înlocuiește automat la inițializare -->
+        <textarea id="sursa-editor" name="sursa-editor" title="Editor de cod">
 #include &lt;iostream&gt;
 using namespace std;
 int main() {
     cout &lt;&lt; "Hello, World!" &lt;&lt; endl;
     return 0;
 }</textarea>
+
     </main>
 
-    <div class="console" id="consoleOutput">CONSOLA</div>
-    <footer class="futer">@2025, December — Created by Suciu Dinu Ștefan</footer>
+    <!-- ── PANOUL DE JOS (stdin + output) ────────────────────── -->
+    <div id="panou-jos">
 
-</div>
+        <!-- Bara STDIN — colapsabilă, trimite input spre programul rulat -->
+        <div id="bara-stdin">
+            <i class="fa-solid fa-terminal"></i>
+            <span>STDIN</span>
+            <span id="indiciu-stdin">Input for your program (cin, input(), Scanner…)</span>
+            <i class="fa-solid fa-chevron-down sageata-sectiune" id="sageata-stdin"></i>
+        </div>
+        <div id="corp-stdin">
+            <textarea
+                id="text-stdin"
+                placeholder="Type program input here, one value per line..."
+                spellcheck="false"
+            ></textarea>
+        </div>
+
+        <!-- Zona de output — afișează rezultatul compilării/rulării -->
+        <div id="zona-output"></div>
+
+    </div>
+
+    <footer id="subsol">@2025, December — Created by Suciu Dinu Ștefan</footer>
+
+</div><!-- /container-principal -->
+
 <script src="script.js"></script>
 </body>
 </html>

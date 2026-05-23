@@ -1,409 +1,454 @@
+/* ============================================================
+   style.css — CC101 Code Compiler
+   Structură: Design Tokens → Reset → Grid → Componente
+   Filosofie: se setează proprietățile pe părinți și se
+   moștenesc jos; grupăm selectori cu aceeași regulă CSS.
+   ============================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 
+/* ── VARIABILE GLOBALE ────────────────────────────────────────
+   Toate culorile, fonturile și dimensiunile repetate trăiesc
+   aici. Schimbarea unui token se propagă automat în tot fișierul. */
 :root {
-    --bg-base:          #0f1019;
-    --bg-mid:           #13141f;
-    --bg-editor:        #1a1b2e;
-    --accent:           #7c5cbf;
-    --accent-lit:       #c4a4ff;
-    --green:            #9eefb4;
-    --save-green:       #27ae60;
-    --save-green-hover: #2ecc71;
-    --border:           rgba(255,255,255,0.06);
-    --border-accent:    rgba(124,92,191,0.35);
-    --text-dim:         rgba(255,255,255,0.25);
-    --text-mid:         rgba(255,255,255,0.55);
-    --text-main:        rgba(255,255,255,0.88);
+    /* Fundaluri */
+    --fundal-baza:    #0f1019;
+    --fundal-mediu:   #13141f;
+    --fundal-editor:  #1a1b2e;
+
+    /* Accent mov */
+    --accent:         #7c5cbf;
+    --accent-deschis: #c4a4ff;
+    --accent-slab:    rgba(124, 92, 191, 0.10);
+    --accent-mediu:   rgba(124, 92, 191, 0.18);
+    --accent-bordura: rgba(124, 92, 191, 0.35);
+    --accent-stralucire: 0 0 14px rgba(124, 92, 191, 0.40);
+
+    /* Culori semantice */
+    --verde:          #9eefb4;
+    --rosu:           #ff5555;
+    --verde-salvare:  #27ae60;
+    --verde-hover:    #2ecc71;
+
+    /* Text */
+    --text-slab:  rgba(255, 255, 255, 0.25);
+    --text-mediu: rgba(255, 255, 255, 0.55);
+    --text-main:  rgba(255, 255, 255, 0.88);
+
+    /* Borduri */
+    --bordura: rgba(255, 255, 255, 0.06);
+
+    /* Fonturi */
+    --font-ui:   'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Dimensiuni fixe */
+    --inaltime-bara:    48px;
+    --latime-sidebar:   250px;
+    --inaltime-tab:     36px;
+    --raza:             6px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── RESET DE BAZĂ ────────────────────────────────────────────
+   Eliminăm margin/padding implicit și fixăm box-sizing global. */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+/* Setăm fontul și culoarea pe body — toate elementele le moștenesc
+   automat, fără să fie nevoie să le specificăm din nou jos. */
 body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-base);
+    font-family: var(--font-ui);
+    background: var(--fundal-baza);
     color: var(--text-main);
 }
 
-/* ── GRID ─────────────────────────────────────── */
-.app-container {
+/* Scrollbar subțire — definit o singură dată, moștenit de toate containerele cu overflow */
+::-webkit-scrollbar       { width: 4px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+/* ── LAYOUT PRINCIPAL (CSS Grid) ─────────────────────────────
+   Împărțim ecranul în 4 zone: bara sus, sidebar, editor,
+   panoul de jos și footer. */
+#container-principal {
     display: grid;
     height: 100vh;
     transition: grid-template-columns 0.3s ease;
-    grid-template-columns: 250px 1fr;
-    grid-template-rows: 48px 2.5fr 1.75fr 26px;
+    grid-template-columns: var(--latime-sidebar) 1fr;
+    grid-template-rows: var(--inaltime-bara) 2.5fr 1.75fr 26px;
     grid-template-areas:
-        "Header  Header"
-        "Sidebar Editor"
-        "Sidebar Console"
-        "Sidebar Footer";
+        "BaraSus  BaraSus"
+        "Sidebar  Editor"
+        "Sidebar  PanouJos"
+        "Sidebar  Footer";
 }
-.app-container.menu-closed { grid-template-columns: 52px 1fr; }
 
-/* ── TOOLBAR ──────────────────────────────────── */
-.toolbar {
-    grid-area: Header;
-    background: var(--bg-base);
-    border-bottom: 1px solid var(--border);
+/* Când sidebar-ul e restrâns, coloana se îngustează la 52px */
+#container-principal.meniu-inchis { grid-template-columns: 52px 1fr; }
+
+/* ── BARA DE SUS ──────────────────────────────────────────────*/
+#bara-sus {
+    grid-area: BaraSus;
     display: flex;
     align-items: center;
-    padding: 0 16px;
     gap: 8px;
-}
-.toolbar::before {
-    content: "CC101";
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 17px;
-    font-weight: 500;
-    color: var(--accent-lit);
-    letter-spacing: 0.15em;
-    margin-right: auto;
+    padding: 0 16px;
+    background: var(--fundal-baza);
+    border-bottom: 1px solid var(--bordura);
 }
 
-/* ── SPLIT BUTTON GROUP ───────────────────────── */
-.split-btn-group {
-    position: relative;
+/* Logo "CC101" generat prin CSS — nu necesită element HTML separat */
+#bara-sus::before {
+    content: "CC101";
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--accent-deschis);
+    letter-spacing: 0.15em;
+    margin-right: auto; /* împinge butoanele spre dreapta */
+}
+
+/* ── BUTON SPLIT (Save / Run) ─────────────────────────────────
+   Fiecare buton are două jumătăți: acțiunea principală (stânga)
+   și săgeata care deschide meniul extins (dreapta). */
+.grup-buton-split {
+    position: relative; /* necesar pentru dropdown-ul absolut */
     display: flex;
     align-items: stretch;
     height: 30px;
-    border-radius: 6px;
 }
 
-.split-main {
+/* Stiluri comune pentru ambele jumătăți ale butonului */
+.buton-principal,
+.buton-sageata {
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-family: var(--font-ui);
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.buton-principal {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 0 14px;
-    border: none;
-    border-radius: 6px 0 0 6px;
-    font-family: 'Inter', sans-serif;
+    border-radius: var(--raza) 0 0 var(--raza);
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: background 0.15s, box-shadow 0.15s;
     white-space: nowrap;
-    color: #fff;
 }
-.split-arrow {
+
+.buton-sageata {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 26px;
-    border: none;
-    border-left: 1px solid rgba(255,255,255,0.18);
-    border-radius: 0 6px 6px 0;
     font-size: 10px;
-    cursor: pointer;
-    transition: background 0.15s;
-    color: #fff;
+    border-left: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0 var(--raza) var(--raza) 0;
 }
 
-.split-save                          { background: var(--save-green); }
-.split-save:hover                    { background: var(--save-green-hover); }
-button.split-arrow.split-save:hover  { background: #1e8449; }
+/* Efect de apăsare pe întregul grup */
+.grup-buton-split:active .buton-principal,
+.grup-buton-split:active .buton-sageata { transform: scale(0.97); }
 
-.split-run                           { background: var(--accent); }
-.split-run:hover                     { background: #9370d8; box-shadow: 0 0 14px rgba(124,92,191,0.4); }
-button.split-arrow.split-run:hover   { background: #6a4caa; box-shadow: none; }
+/* Culori specifice — Salvare verde, Rulare mov */
+.buton-salvare                              { background: var(--verde-salvare); }
+.buton-salvare:hover                        { background: var(--verde-hover); }
+.buton-sageata.buton-salvare:hover          { background: #1e8449; }
 
-.split-btn-group:active .split-main,
-.split-btn-group:active .split-arrow { transform: scale(0.97); }
+.buton-rulare                               { background: var(--accent); }
+.buton-rulare:hover                         { background: #9370d8; box-shadow: var(--accent-stralucire); }
+.buton-sageata.buton-rulare:hover           { background: #6a4caa; box-shadow: none; }
 
-/* ── DROPDOWN ─────────────────────────────────── */
-.split-dropdown {
-    display: none;
+/* ── MENIU DROPDOWN ───────────────────────────────────────────
+   Apare sub grupul de butoane la click pe săgeată. */
+.meniu-dropdown {
+    display: none; /* ascuns implicit; JS adaugă clasa .deschis */
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
     min-width: 230px;
-    background: #1e1f30;
-    border: 1px solid var(--border-accent);
-    border-radius: 8px;
     padding: 6px;
+    background: #1e1f30;
+    border: 1px solid var(--accent-bordura);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
     z-index: 1000;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.55);
-    animation: dropdownIn 0.12s ease;
+    animation: intrare-dropdown 0.12s ease;
 }
-.split-dropdown.open { display: block; }
+.meniu-dropdown.deschis { display: block; }
 
-@keyframes dropdownIn {
+@keyframes intrare-dropdown {
     from { opacity: 0; transform: translateY(-4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-.dropdown-item {
+/* O opțiune din dropdown — grid cu 2 coloane: iconiță | text+descriere */
+.optiune-dropdown {
     display: grid;
     grid-template-columns: 24px 1fr;
     grid-template-rows: auto auto;
-    align-items: center;
     gap: 0 10px;
+    align-items: center;
     width: 100%;
     padding: 9px 10px;
     border: none;
     border-radius: 5px;
     background: transparent;
+    font-family: var(--font-ui);
     color: var(--text-main);
-    font-family: 'Inter', sans-serif;
     text-align: left;
     cursor: pointer;
     transition: background 0.12s;
 }
-.dropdown-item:hover { background: rgba(124,92,191,0.15); }
-.dropdown-item i     { grid-row: 1 / 3; font-size: 15px; color: var(--accent-lit); text-align: center; align-self: center; }
-.dropdown-item span  { font-size: 12px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
-.dropdown-item small { font-size: 10px; color: var(--text-dim); line-height: 1.3; display: block; }
-.dropdown-item + .dropdown-item { border-top: 1px solid var(--border); margin-top: 3px; padding-top: 10px; }
+.optiune-dropdown:hover { background: rgba(124, 92, 191, 0.15); }
 
-/* ── SIDEBAR ──────────────────────────────────── */
-.sidebar {
+/* Separator între opțiuni */
+.optiune-dropdown + .optiune-dropdown {
+    border-top: 1px solid var(--bordura);
+    margin-top: 3px;
+    padding-top: 10px;
+}
+
+/* Iconița acoperă ambele rânduri din grid */
+.optiune-dropdown i     { grid-row: 1/3; font-size: 15px; color: var(--accent-deschis); text-align: center; align-self: center; }
+.optiune-dropdown span  { font-size: 12px; font-weight: 600; line-height: 1.3; }
+.optiune-dropdown small { font-size: 10px; color: var(--text-slab); line-height: 1.3; display: block; }
+
+/* ── SIDEBAR ──────────────────────────────────────────────────*/
+#bara-laterala {
     grid-area: Sidebar;
-    background: var(--bg-mid);
-    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    min-width: 0; /* permite micșorarea sub conținut */
+    background: var(--fundal-mediu);
+    border-right: 1px solid var(--bordura);
 }
-.sidebar-header {
+
+#antet-bara-laterala {
     display: flex;
     align-items: center;
     height: 40px;
-    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    border-bottom: 1px solid var(--bordura);
 }
-#toggle_retractabil {
-    width: 52px; height: 40px;
+
+#buton-restrânge {
+    width: 52px;
+    height: 40px;
     flex-shrink: 0;
     border: none;
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--bordura);
     background: transparent;
-    color: var(--text-mid);
-    cursor: pointer;
+    color: var(--text-mediu);
     font-size: 14px;
+    cursor: pointer;
     transition: color 0.15s, background 0.15s;
 }
-#toggle_retractabil:hover { color: var(--accent-lit); background: rgba(124,92,191,0.08); }
-.app-container.menu-closed #toggle_retractabil { transform: rotate(180deg); border-right: none; }
+#buton-restrânge:hover { color: var(--accent-deschis); background: var(--accent-slab); }
 
-span.menu-label {
-    color: var(--text-dim);
+/* Când sidebar-ul e închis, butonul se rotește 180° (arată spre dreapta) */
+#container-principal.meniu-inchis #buton-restrânge {
+    transform: rotate(180deg);
+    border-right: none;
+}
+
+#eticheta-meniu {
+    margin-left: 10px;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-left: 10px;
+    color: var(--text-slab);
     white-space: nowrap;
     opacity: 1;
     transition: opacity 0.2s ease 0.15s;
 }
-.app-container.menu-closed span.menu-label { opacity: 0; pointer-events: none; transition-delay: 0s; }
+#container-principal.meniu-inchis #eticheta-meniu {
+    opacity: 0;
+    pointer-events: none;
+    transition-delay: 0s;
+}
 
-/* ── SIDEBAR NAV ──────────────────────────────── */
-.sidebar-nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+/* ── NAVIGARE SIDEBAR ─────────────────────────────────────────*/
+#navigare-sidebar {
+    padding: 12px 0;
+    flex: 1;
+    overflow-y: auto;
+}
 
-.group-title {
+/* Fiecare titlu de secțiune din sidebar (FILES, LANGUAGE, SETTINGS…) */
+.titlu-sectiune {
+    position: relative;
     display: flex;
     align-items: center;
     height: 38px;
     margin: 2px 8px;
-    border-radius: 6px;
+    border-radius: var(--raza);
     cursor: pointer;
-    transition: background 0.15s;
     overflow: hidden;
-    position: relative;
+    transition: background 0.15s;
 }
-.group-title:hover { background: rgba(124,92,191,0.1); }
-.group-title:first-child { background: rgba(124,92,191,0.14); }
-.group-title:first-child::before {
+.titlu-sectiune:hover        { background: var(--accent-slab); }
+.titlu-sectiune:first-child  { background: rgba(124, 92, 191, 0.14); }
+
+/* Linie verticală colorată în stânga primei secțiuni */
+.titlu-sectiune:first-child::before {
     content: '';
     position: absolute;
     left: 0; top: 6px; bottom: 6px;
     width: 2px;
-    background: var(--accent-lit);
+    background: var(--accent-deschis);
     border-radius: 0 2px 2px 0;
 }
-.group-title i {
+
+/* Iconițele și textele din titlurile de secțiune moștenesc culoarea de la părinte */
+.titlu-sectiune i {
     width: 36px;
     text-align: center;
     font-size: 15px;
-    color: var(--text-mid);
     flex-shrink: 0;
+    color: var(--text-mediu);
     transition: color 0.15s;
 }
-.group-title:first-child i,
-.group-title:hover i { color: var(--accent-lit); }
-.group-title span {
+.titlu-sectiune:first-child i,
+.titlu-sectiune:hover i       { color: var(--accent-deschis); }
+
+.titlu-sectiune > span {
     font-size: 17px;
     font-weight: 500;
-    color: var(--text-mid);
+    color: var(--text-mediu);
     letter-spacing: 0.05em;
     white-space: nowrap;
     opacity: 1;
     transition: opacity 0.2s ease 0.15s;
 }
-.group-title:first-child span { color: var(--text-main); }
-.app-container.menu-closed .group-title span { opacity: 0; pointer-events: none; transition-delay: 0s; }
+.titlu-sectiune:first-child > span { color: var(--text-main); }
 
-/* Chevron arrows */
-.settings-arrow {
+/* Ascunde textul secțiunilor când sidebar-ul e restrâns */
+#container-principal.meniu-inchis .titlu-sectiune > span {
+    opacity: 0;
+    pointer-events: none;
+    transition-delay: 0s;
+}
+
+/* Săgeata colapsabilă — comună tuturor secțiunilor și stdin-ului */
+.sageata-sectiune {
     margin-left: auto;
     margin-right: 10px;
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-slab);
     flex-shrink: 0;
     transition: transform 0.2s ease;
 }
-.app-container.menu-closed .settings-arrow { display: none; }
+#container-principal.meniu-inchis .sageata-sectiune { display: none; }
 
-/* ── COLLAPSIBLE PANELS ───────────────────────── */
-.settings-panel {
+/* ── PANOURI COLAPSABILE (Files, Language, Settings) ──────────
+   max-height: 0 = ascuns; JS setează valoarea reală la deschidere */
+.panou-sectiune {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.25s ease;
-    background: rgba(0,0,0,0.25);
-    border-bottom: 1px solid var(--border);
     padding: 0 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid var(--bordura);
 }
-.app-container.menu-closed .settings-panel { display: none; }
+#container-principal.meniu-inchis .panou-sectiune { display: none; }
 
-.settings-section-label {
+.eticheta-subsectiune {
+    margin: 12px 0 8px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-dim);
-    margin: 12px 0 8px;
-}
-#sizeDisplay {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-lit);
-    text-transform: none;
+    color: var(--text-slab);
 }
 
-/* ── LANGUAGE BUTTONS ─────────────────────────── */
-.lang-options {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px 0;
-}
+/* Eticheta "Font Size" are margine suplimentară sus */
+.marime-titlu { margin-top: 14px; }
 
-.lang-btn {
+#afisaj-marime { font-family: var(--font-mono); color: var(--accent-deschis); text-transform: none; }
+
+/* ── BUTOANE INTERACTIV (Limbaj + Font) ───────────────────────
+   Aceleași stiluri de bază — selectori grupați pentru a evita
+   duplicarea. Diferențele mici sunt adăugate separat mai jos. */
+.buton-limbaj,
+.buton-font {
     display: flex;
     align-items: center;
-    gap: 10px;
     width: 100%;
-    padding: 7px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-mid);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.12s, color 0.12s, border-color 0.12s;
-    -webkit-appearance: none;
-    appearance: none;
-}
-.lang-btn:hover {
-    background: rgba(124,92,191,0.1);
-    color: var(--text-main);
-    border-color: var(--border-accent);
-}
-.lang-btn.active {
-    background: rgba(124,92,191,0.18);
-    color: var(--accent-lit);
-    border-color: var(--border-accent);
-}
-.lang-btn i {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
-    flex-shrink: 0;
-    color: inherit;
-}
-.lang-btn span {
-    flex: 1;
-    font-size: 12px;
-}
-/* Extension badge (.cpp, .py etc.) pinned to the right */
-.lang-btn small {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-dim);
-    margin-left: auto;
-    flex-shrink: 0;
-}
-.lang-btn.active small { color: rgba(196,164,255,0.55); }
-
-/* ── FONT BUTTONS ─────────────────────────────── */
-.font-options { display: flex; flex-direction: column; gap: 4px; }
-.font-btn {
-    display: block;
-    width: 100%;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-mid);
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    padding: 5px 10px;
+    border: 1px solid var(--bordura);
     border-radius: 5px;
+    background: transparent;
+    color: var(--text-mediu);
+    font-family: var(--font-ui);
     cursor: pointer;
     text-align: left;
     transition: background 0.12s, color 0.12s, border-color 0.12s;
     -webkit-appearance: none;
     appearance: none;
 }
-.font-btn:hover  { background: rgba(124,92,191,0.1);  color: var(--text-main); border-color: var(--border-accent); }
-.font-btn.active { background: rgba(124,92,191,0.18); color: var(--accent-lit); border-color: var(--border-accent); }
+.buton-limbaj:hover,
+.buton-font:hover  { background: var(--accent-slab);  color: var(--text-main); border-color: var(--accent-bordura); }
+.buton-limbaj.activ,
+.buton-font.activ  { background: var(--accent-mediu); color: var(--accent-deschis); border-color: var(--accent-bordura); }
 
-/* ── FONT SIZE SLIDER ─────────────────────────── */
-.size-control {
+/* Stiluri specifice butoanelor de limbaj */
+#optiuni-limbaj  { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; }
+.buton-limbaj    { gap: 10px; padding: 7px 10px; font-size: 12px; font-weight: 500; border-radius: var(--raza); }
+.buton-limbaj i  { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; color: inherit; }
+.buton-limbaj span { flex: 1; }
+.buton-limbaj small       { font-family: var(--font-mono); font-size: 10px; color: var(--text-slab); margin-left: auto; }
+.buton-limbaj.activ small { color: rgba(196, 164, 255, 0.55); }
+
+/* Stiluri specifice butoanelor de font */
+#optiuni-font { display: flex; flex-direction: column; gap: 4px; }
+.buton-font   { padding: 5px 10px; font-size: 11px; font-weight: 400; }
+
+/* ── SLIDER DIMENSIUNE FONT ───────────────────────────────────*/
+#control-marime {
     display: flex;
     align-items: center;
     gap: 8px;
     padding-bottom: 14px;
 }
-.size-limit {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-dim);
-    flex-shrink: 0;
-}
-#sizeSlider {
-    flex: 1; height: 4px;
+.limita-marime { font-family: var(--font-mono); font-size: 10px; color: var(--text-slab); flex-shrink: 0; }
+
+#slider-marime {
+    flex: 1;
+    height: 4px;
+    border: none;
     border-radius: 2px;
-    background: var(--border);
+    background: var(--bordura);
     outline: none;
     cursor: pointer;
     -webkit-appearance: none;
     appearance: none;
-    border: none;
 }
-#sizeSlider::-webkit-slider-thumb {
+#slider-marime::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 14px; height: 14px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(124, 92, 191, 0.2);
     transition: background 0.15s, transform 0.1s;
-    box-shadow: 0 0 0 3px rgba(124,92,191,0.2);
 }
-#sizeSlider::-webkit-slider-thumb:hover { background: var(--accent-lit); transform: scale(1.15); }
-#sizeSlider::-moz-range-thumb {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    border: none;
-}
+#slider-marime::-webkit-slider-thumb:hover { background: var(--accent-deschis); transform: scale(1.15); }
+#slider-marime::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
 
-/* ── SIDEBAR FILE LIST ────────────────────────── */
-#filesList { display: flex; flex-direction: column; gap: 2px; padding-bottom: 6px; }
+/* ── LISTA FIȘIERE DIN SIDEBAR ────────────────────────────────*/
+#lista-fisiere { display: flex; flex-direction: column; gap: 2px; padding-bottom: 6px; }
+#container-principal.meniu-inchis #lista-fisiere { display: none; }
 
-.sidebar-file-item {
+/* Un element din lista de fișiere */
+.element-fisier {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -412,186 +457,251 @@ span.menu-label {
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.13s;
-    position: relative;
 }
-.sidebar-file-item:hover { background: rgba(124,92,191,0.1); }
-.sidebar-file-item.active {
-    background: rgba(124,92,191,0.2);
-    border-left: 2px solid var(--accent-lit);
-    padding-left: 8px;
-}
-.sidebar-file-item i {
-    font-size: 13px;
-    color: var(--text-mid);
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-}
-.sidebar-file-item.active i { color: var(--accent-lit); }
-.sidebar-file-name {
-    font-size: 12px;
-    color: var(--text-mid);
+.element-fisier:hover  { background: var(--accent-slab); }
+.element-fisier.activ  { background: var(--accent-mediu); border-left: 2px solid var(--accent-deschis); padding-left: 8px; }
+
+.element-fisier i { font-size: 13px; flex-shrink: 0; width: 16px; text-align: center; color: var(--text-mediu); }
+.element-fisier.activ i { color: var(--accent-deschis); }
+
+.nume-fisier {
     flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--text-mediu);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0;
 }
-.sidebar-file-item.active .sidebar-file-name { color: var(--text-main); }
-.sidebar-file-delete {
-    font-size: 15px;
-    line-height: 1;
-    color: var(--text-dim);
-    opacity: 0;
+.element-fisier.activ .nume-fisier { color: var(--text-main); }
+
+/* Butonul × de ștergere — apare doar la hover pe element */
+.sterge-fisier {
     flex-shrink: 0;
     padding: 0 2px;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-slab);
     border-radius: 3px;
+    opacity: 0;
     transition: opacity 0.15s, color 0.15s, background 0.15s;
 }
-.sidebar-file-item:hover .sidebar-file-delete { opacity: 1; }
-.sidebar-file-delete:hover { color: #ff5555; background: rgba(255,85,85,0.12); }
-.app-container.menu-closed #filesList { display: none; }
+.element-fisier:hover .sterge-fisier { opacity: 1; }
+.sterge-fisier:hover { color: var(--rosu); background: rgba(255, 85, 85, 0.12); }
 
-/* ── EDITOR AREA ──────────────────────────────── */
-.editor {
+/* ── ZONA EDITORULUI ──────────────────────────────────────────*/
+#zona-editor {
     grid-area: Editor;
-    background: var(--bg-editor);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-bottom: 1px solid var(--border);
+    background: var(--fundal-editor);
+    border-bottom: 1px solid var(--bordura);
 }
 
-/* Tab bar */
-.editor-header {
-    height: 36px;
-    background: var(--bg-mid);
-    border-bottom: 1px solid var(--border);
+/* Bara cu tab-uri */
+#bara-taburi {
     display: flex;
-    align-items: flex-end;
-    padding: 0;
-    overflow-x: auto;
+    align-items: flex-end; /* tab-urile stau pe muchia de jos */
+    height: var(--inaltime-tab);
     flex-shrink: 0;
+    overflow-x: auto;
+    background: var(--fundal-mediu);
+    border-bottom: 1px solid var(--bordura);
 }
-.editor-header::-webkit-scrollbar { height: 3px; }
-.editor-header::-webkit-scrollbar-thumb { background: var(--border); }
 
-.tabs-container {
+#container-taburi {
     display: flex;
     height: 100%;
     flex: 1;
     min-width: 0;
     overflow-x: auto;
 }
-.tabs-container::-webkit-scrollbar { height: 3px; }
-.tabs-container::-webkit-scrollbar-thumb { background: var(--border); }
 
+/* Un tab de fișier */
 .tab {
-    padding: 0 14px;
-    background: var(--bg-base);
-    border-right: 1px solid var(--border);
-    border-top: 2px solid transparent;
-    color: var(--text-mid);
-    font-size: 12px;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
+    height: 100%;
+    padding: 0 14px;
+    border-top: 2px solid transparent;
+    border-right: 1px solid var(--bordura);
+    background: var(--fundal-baza);
+    color: var(--text-mediu);
+    font-family: var(--font-ui);
+    font-size: 12px;
     white-space: nowrap;
     user-select: none;
-    height: 100%;
+    cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
-.tab.active {
-    background: var(--bg-editor);
-    border-top: 2px solid var(--accent);
-    color: var(--text-main);
-}
-.tab:hover:not(.active):not(.tab-static) { background: rgba(255,255,255,0.02); }
+.tab.activ                              { background: var(--fundal-editor); border-top-color: var(--accent); color: var(--text-main); }
+.tab:hover:not(.activ):not(.tab-static) { background: rgba(255, 255, 255, 0.02); }
 
-/* Static "EDITOR" label — pinned right, non-interactive */
+/* Tab-ul static "EDITOR" — fixat la dreapta, decorativ, nu interactiv */
 .tab-static {
     margin-left: auto;
     flex-shrink: 0;
-    background: transparent;
-    border-top: 2px solid transparent;
-    border-left: 1px solid var(--border);
     border-right: none;
-    color: var(--text-dim);
+    border-left: 1px solid var(--bordura);
+    background: transparent;
+    color: var(--text-slab);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    cursor: default;
     padding: 0 16px;
+    cursor: default;
     pointer-events: none;
 }
+
+/* Punct decorativ înaintea textului "EDITOR" */
 .tab-static::before {
     content: '';
     display: inline-block;
     width: 7px; height: 7px;
+    margin-right: 7px;
     border-radius: 50%;
     background: var(--accent);
-    margin-right: 7px;
     opacity: 0.7;
 }
 
-.close-tab {
-    font-size: 14px;
-    line-height: 1;
-    opacity: 0.35;
-    transition: opacity 0.2s, color 0.2s;
-}
-.close-tab:hover { opacity: 1; color: #ff5555; }
+/* Butonul × de închidere a unui tab */
+.inchide-tab { font-size: 14px; line-height: 1; opacity: 0.35; transition: opacity 0.2s, color 0.2s; }
+.inchide-tab:hover { opacity: 1; color: var(--rosu); }
 
-/* CodeMirror fills remaining editor height */
+/* CodeMirror — editorul ocupă tot spațiul rămas în coloana editorului */
 .CodeMirror {
     height: 100% !important;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     line-height: 1.7 !important;
-    background: var(--bg-editor) !important;
+    background: var(--fundal-editor) !important;
 }
-.CodeMirror-linenumber { color: rgba(255,255,255,0.15) !important; font-size: 12px !important; }
-.CodeMirror-gutters    { background: var(--bg-editor) !important; border-right: 1px solid var(--border) !important; }
-.CodeMirror-activeline-background { background: rgba(124,92,191,0.06) !important; }
+.CodeMirror-gutters               { background: var(--fundal-editor) !important; border-right: 1px solid var(--bordura) !important; }
+.CodeMirror-linenumber            { color: rgba(255, 255, 255, 0.15) !important; font-size: 12px !important; }
+.CodeMirror-activeline-background { background: rgba(124, 92, 191, 0.06) !important; }
 
-/* ── CONSOLE ──────────────────────────────────── */
-.console {
-    grid-area: Console;
-    background: var(--bg-base);
-    border-top: 1px solid var(--border-accent);
-    color: var(--green);
-    font-family: 'JetBrains Mono', monospace;
+/* ── PANOUL DE JOS (STDIN + OUTPUT) ──────────────────────────
+   Flex column: bara stdin → textarea stdin colapsabil → zona output */
+#panou-jos {
+    grid-area: PanouJos;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--fundal-baza);
+    border-top: 1px solid var(--accent-bordura);
+}
+
+/* Bara STDIN — clicabilă, deschide/închide textarea-ul de input */
+#bara-stdin {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 16px;
+    flex-shrink: 0;
+    background: var(--fundal-mediu);
+    border-bottom: 1px solid var(--bordura);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+#bara-stdin:hover { background: var(--accent-slab); }
+#bara-stdin i     { font-size: 12px; color: var(--accent-deschis); }
+
+/* Eticheta "STDIN" */
+#bara-stdin > span:first-of-type {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-slab);
+}
+
+#indiciu-stdin { font-size: 10px; color: var(--text-slab); font-style: italic; opacity: 0.7; }
+
+/* Corpul colapsabil al stdin-ului — JS controlează max-height */
+#corp-stdin {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.22s ease;
+    flex-shrink: 0;
+}
+
+/* Textarea-ul în care utilizatorul scrie input-ul pentru program */
+#text-stdin {
+    display: block;
+    width: 100%;
+    height: 80px;
+    background: #0b0c14;
+    border: none;
+    border-bottom: 1px solid var(--accent-bordura);
+    /* Moștenește fontul de la body, suprascris explicit pentru mono */
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #e2d9f3;
+    padding: 10px 16px;
+    resize: none;
+    outline: none;
+}
+#text-stdin::placeholder { color: var(--text-slab); font-style: italic; }
+#text-stdin:focus        { background: #0d0e18; }
+
+/* Zona de output — ocupă spațiul rămas din panoul de jos */
+#zona-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 20px;
+    /* Moștenire: font-family și font-size vin de pe body,
+       suprascrise mai jos pentru mono */
+    font-family: var(--font-mono);
     font-size: 13px;
     line-height: 1.6;
-    padding: 14px 20px;
-    overflow-y: auto;
 }
-.console::before {
+
+/* Eticheta "OUTPUT" generată prin CSS */
+#zona-output::before {
     content: "OUTPUT";
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-ui); /* suprascriem mono cu UI pentru etichetă */
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.14em;
-    color: var(--text-dim);
+    color: var(--text-slab);
     margin-bottom: 10px;
 }
-.console::-webkit-scrollbar       { width: 4px; }
-.console::-webkit-scrollbar-track { background: transparent; }
-.console::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-/* ── FOOTER ───────────────────────────────────── */
-.futer {
+/* Blocuri de text din output — colorate după tip */
+.bloc-output {
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+.bloc-output.succes  { color: var(--verde); }
+.bloc-output.eroare  { color: var(--rosu); }
+.bloc-output.astept  { color: rgba(255, 255, 255, 0.35); font-style: italic; }
+
+/* ── FOOTER ───────────────────────────────────────────────────*/
+#subsol {
     grid-area: Footer;
-    background: var(--bg-base);
-    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding: 0 14px;
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-slab);
+    background: var(--fundal-baza);
+    border-top: 1px solid var(--bordura);
 }
+
+/* ── INPUT FISIER ASCUNS ──────────────────────────────────────
+   Nu are reprezentare vizuală — e declanșat programatic din JS */
+#input-fisier { display: none; }
+
+/* Clasa buton-upload e identică cu .titlu-sectiune dar cu opacitate redusă */
+.buton-upload { opacity: 0.85; padding-left: 10px; margin: 8px 0; }
