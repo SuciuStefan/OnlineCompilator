@@ -44,13 +44,13 @@ const LIMBAJE = {
         imagine:     'frolvlad/alpine-gxx',
         extensie:    '.cpp',
         filtruSursa: ext => ['.cpp', '.c'].includes(ext),
-        comanda:     fisiere => `g++ -o /out ${fisiere.join(' ')} && /out`,
+        comanda: fisiere => `g++ -I/src -o /out ${fisiere.join(' ')} && /out`,
     },
     c: {
         imagine:     'frolvlad/alpine-gxx',
         extensie:    '.c',
         filtruSursa: ext => ext === '.c',
-        comanda:     fisiere => `gcc -o /out ${fisiere.join(' ')} && /out`,
+        comanda: fisiere => `gcc -I/src -o /out ${fisiere.join(' ')} && /out`,
     },
     python: {
         imagine:     'python:3.12-alpine',

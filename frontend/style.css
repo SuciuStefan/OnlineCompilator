@@ -705,3 +705,13 @@ body {
 
 /* Clasa buton-upload e identică cu .titlu-sectiune dar cu opacitate redusă */
 .buton-upload { opacity: 0.85; padding-left: 10px; margin: 8px 0; }
+
+/* ── DRAG & DROP TABURI ───────────────────────── */
+/* Tab-ul care e în curs de tragere — semi-transparent */
+.tab-tras        { opacity: 0.4; cursor: grabbing; }
+
+/* Tab-ul peste care se eliberează — highlight verde */
+.tab-drop-target {
+    border-top-color: var(--verde);
+    background: rgba(158, 239, 180, 0.06);
+}
