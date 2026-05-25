@@ -36,7 +36,7 @@ int main() {
         },
         java: {
             id: 'java', eticheta: 'Java', icona: 'devicon-java-plain',
-            extensie: '.java', modCM: 'text/x-java', fisierPrincipal: 'Main.java',
+            extensie: '.java', modCM: 'text/x-java', fisierPrincipal: 'main.java',
             hello:
 `public class Main {
     public static void main(String[] args) {
@@ -78,6 +78,71 @@ int main() {
     const listaFisiere    = document.getElementById('lista-fisiere');
     const inputFisier     = document.getElementById('input-fisier');
     const butonUpload     = document.getElementById('buton-upload-fisier');
+
+
+    // ── MODAL NUME FIȘIER ────────────────────────────────────────
+    // Un singur modal reutilizabil pentru New File și Rename.
+    // deschideModal() returnează o promisiune rezolvată cu numele
+    // introdus de utilizator, sau null dacă a apăsat Anulează/Escape.
+    const overlayModal = document.getElementById('overlay-modal');
+    const inputModal   = document.getElementById('input-modal');
+    const eroareModal  = document.getElementById('eroare-modal');
+    const titluModal   = document.getElementById('titlu-modal');
+    const btnConfirma  = document.getElementById('buton-confirma-modal');
+    const btnAnuleaza  = document.getElementById('buton-anuleaza-modal');
+
+    function deschideModal({ titlu, valoareInitiala = '', placeholder = 'ex: utils.cpp' }) {
+        return new Promise(resolve => {
+            titluModal.textContent  = titlu;
+            inputModal.value        = valoareInitiala;
+            inputModal.placeholder  = placeholder;
+            inputModal.className    = '';
+            eroareModal.textContent = '';
+            overlayModal.classList.add('vizibil');
+            inputModal.focus();
+            inputModal.select(); // util la rename — utilizatorul suprascrie direct
+
+            function inchide(rezultat) {
+                overlayModal.classList.remove('vizibil');
+                btnConfirma.removeEventListener('click', onConfirma);
+                btnAnuleaza.removeEventListener('click', onAnuleaza);
+                inputModal.removeEventListener('keydown', onTasta);
+                resolve(rezultat);
+            }
+
+            function valideaza() {
+                const val = inputModal.value.trim();
+                if (!val) {
+                    eroareModal.textContent = 'Numele nu poate fi gol.';
+                    inputModal.classList.add('invalid');
+                    return null;
+                }
+                if (!val.includes('.') || val.endsWith('.')) {
+                    eroareModal.textContent = 'Include și extensia (ex: main.cpp, utils.h).';
+                    inputModal.classList.add('invalid');
+                    return null;
+                }
+                inputModal.classList.remove('invalid');
+                eroareModal.textContent = '';
+                return val;
+            }
+
+            function onConfirma() { const v = valideaza(); if (v) inchide(v); }
+            function onAnuleaza() { inchide(null); }
+            function onTasta(e) {
+                if (e.key === 'Enter')  onConfirma();
+                if (e.key === 'Escape') onAnuleaza();
+            }
+
+            btnConfirma.addEventListener('click', onConfirma);
+            btnAnuleaza.addEventListener('click', onAnuleaza);
+            inputModal.addEventListener('keydown', onTasta);
+            // Click pe fundalul întunecat (în afara cutiei) → anulare
+            overlayModal.addEventListener('click', e => {
+                if (e.target === overlayModal) onAnuleaza();
+            }, { once: true });
+        });
+    }
 
     // ── MODELUL DE DATE AL PROIECTULUI ───────────────────────────
     // dateiFisiere → Map<numeFisier, continut>  — toate fișierele din proiect
@@ -359,6 +424,27 @@ int main() {
         });
     }
 
+    // ── NEW FILE ─────────────────────────────────────────────────
+    // Deschide modalul, cere un nume, creează fișierul gol și îl deschide.
+    const butonFisierNou = document.getElementById('buton-fisier-nou');
+    if (butonFisierNou) {
+        butonFisierNou.addEventListener('click', async () => {
+            const nume = await deschideModal({
+                titlu:           'Fișier nou',
+                placeholder:     `ex: utils${limbajCurent.extensie}`,
+            });
+            if (!nume) return;
+
+            // Verificăm că numele nu e deja folosit în proiect
+            if (dateiFisiere.has(nume)) {
+                alert(`Fișierul "${nume}" există deja în proiect.`);
+                return;
+            }
+            // Adăugăm fișierul gol și îl deschidem automat
+            adaugaFisier(nume, '');
+        });
+    }
+
     // ── OPERAȚIUNI CU FIȘIERE ────────────────────────────────────
 
     function adaugaFisier(numeFisier, continut) {
@@ -431,6 +517,49 @@ int main() {
         tabluriDeschise.add(limbajCurent.fisierPrincipal);
         fisierActiv = limbajCurent.fisierPrincipal;
         editor.setValue(limbajCurent.hello);
+        randeazaTaburi();
+        randeazaFisiereSidebar();
+    }
+
+    // ── REDENUMIRE FIȘIER ────────────────────────────────────────
+    // Folosit atât din dublu-click pe sidebar cât și din dublu-click pe tab.
+    // Actualizează Map-ul, Set-ul și fisierActiv dacă era fișierul activ.
+    async function redenumesteFisier(numeVechi) {
+        const numeNou = await deschideModal({
+            titlu:           `Redenumește "${numeVechi}"`,
+            valoareInitiala: numeVechi,
+            placeholder:     numeVechi,
+        });
+
+        if (!numeNou || numeNou === numeVechi) return;
+
+        // Nu permitem suprascrierea unui fișier existent
+        if (dateiFisiere.has(numeNou)) {
+            alert(`Fișierul "${numeNou}" există deja în proiect.`);
+            return;
+        }
+
+        // Salvăm conținutul curent dacă fișierul e activ
+        if (fisierActiv === numeVechi) dateiFisiere.set(numeVechi, editor.getValue());
+
+        const continut = dateiFisiere.get(numeVechi);
+
+        // Reconstruim Map-ul păstrând ordinea (înlocuim cheia veche cu cea nouă)
+        const intrariNoi = [];
+        dateiFisiere.forEach((val, key) => {
+            intrariNoi.push([key === numeVechi ? numeNou : key, val]);
+        });
+        dateiFisiere.clear();
+        intrariNoi.forEach(([k, v]) => dateiFisiere.set(k, v));
+
+        // Reconstruim Set-ul de taburi cu același swap
+        const tabNoi = [...tabluriDeschise].map(t => t === numeVechi ? numeNou : t);
+        tabluriDeschise.clear();
+        tabNoi.forEach(t => tabluriDeschise.add(t));
+
+        // Dacă fișierul redenumit era activ, actualizăm referința
+        if (fisierActiv === numeVechi) fisierActiv = numeNou;
+
         randeazaTaburi();
         randeazaFisiereSidebar();
     }
@@ -515,6 +644,11 @@ int main() {
             tab.appendChild(eticheta);
             tab.appendChild(butonInchide);
             tab.addEventListener('click', () => deschideFisier(numeFisier));
+            // Dublu-click pe tab → rename (același modal ca în sidebar)
+            tab.addEventListener('dblclick', e => {
+                e.stopPropagation();
+                redenumesteFisier(numeFisier);
+            });
 
             // Activăm drag pe fiecare tab imediat după creare
             activreazaDragPeTab(tab, numeFisier);
@@ -538,7 +672,13 @@ int main() {
             const eticheta = document.createElement('span');
             eticheta.className   = 'nume-fisier';
             eticheta.textContent = numeFisier;
-            eticheta.title       = numeFisier;
+            eticheta.title       = `${numeFisier} — dublu-click pentru rename`;
+
+            // Dublu-click pe numele din sidebar → rename inline prin modal
+            eticheta.addEventListener('dblclick', e => {
+                e.stopPropagation();
+                redenumesteFisier(numeFisier);
+            });
 
             const butonSterge = document.createElement('span');
             butonSterge.className = 'sterge-fisier';
@@ -571,13 +711,4 @@ int main() {
     randeazaTaburi();
     randeazaFisiereSidebar();
     adaugaOutput('Output-ul programului va apărea aici după Run.', 'astept');
-
-    // ── SHORTCUT CTRL+S ──────────────────────────────────────────
-    // Interceptăm Ctrl+S înainte ca browserul să deschidă dialogul de salvare
-    document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault(); // oprește salvarea paginii de către browser
-        salveaza('fisier');
-    }
-});
 });

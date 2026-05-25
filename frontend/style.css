@@ -295,18 +295,8 @@ body {
     overflow: hidden;
     transition: background 0.15s;
 }
-.titlu-sectiune:hover        { background: var(--accent-slab); }
-.titlu-sectiune:first-child  { background: rgba(124, 92, 191, 0.14); }
+.titlu-sectiune:hover { background: var(--accent-slab); }
 
-/* Linie verticală colorată în stânga primei secțiuni */
-.titlu-sectiune:first-child::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 6px; bottom: 6px;
-    width: 2px;
-    background: var(--accent-deschis);
-    border-radius: 0 2px 2px 0;
-}
 
 /* Iconițele și textele din titlurile de secțiune moștenesc culoarea de la părinte */
 .titlu-sectiune i {
@@ -317,8 +307,7 @@ body {
     color: var(--text-mediu);
     transition: color 0.15s;
 }
-.titlu-sectiune:first-child i,
-.titlu-sectiune:hover i       { color: var(--accent-deschis); }
+.titlu-sectiune:hover i { color: var(--accent-deschis); }
 
 .titlu-sectiune > span {
     font-size: 17px;
@@ -329,7 +318,6 @@ body {
     opacity: 1;
     transition: opacity 0.2s ease 0.15s;
 }
-.titlu-sectiune:first-child > span { color: var(--text-main); }
 
 /* Ascunde textul secțiunilor când sidebar-ul e restrâns */
 #container-principal.meniu-inchis .titlu-sectiune > span {
@@ -703,8 +691,8 @@ body {
    Nu are reprezentare vizuală — e declanșat programatic din JS */
 #input-fisier { display: none; }
 
-/* Clasa buton-upload e identică cu .titlu-sectiune dar cu opacitate redusă */
-.buton-upload { opacity: 0.85; padding-left: 10px; margin: 8px 0; }
+/* Butoanele de acțiune din panoul Files (New File, Upload) — spațiere ușoară */
+.buton-upload { padding-left: 10px; margin: 4px 0; }
 
 /* ── DRAG & DROP TABURI ───────────────────────── */
 /* Tab-ul care e în curs de tragere — semi-transparent */
@@ -715,3 +703,92 @@ body {
     border-top-color: var(--verde);
     background: rgba(158, 239, 180, 0.06);
 }
+
+/* ── MODAL NUME FIȘIER ────────────────────────── */
+/* Overlay întunecat peste toată pagina — ascuns implicit */
+#overlay-modal {
+    display: none;
+    position: fixed;
+    inset: 0; /* top/right/bottom/left: 0 simultan */
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+/* Clasa .vizibil adăugată de JS când se deschide modalul */
+#overlay-modal.vizibil {
+    display: flex;
+}
+
+/* Cutia modalului */
+#modal-fisier {
+    background: #1e1f30;
+    border: 1px solid var(--accent-bordura);
+    border-radius: 10px;
+    padding: 24px 28px;
+    width: 340px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: intrare-dropdown 0.15s ease;
+}
+
+#titlu-modal {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    letter-spacing: 0.04em;
+}
+
+/* Câmpul de text pentru numele fișierului */
+#input-modal {
+    width: 100%;
+    padding: 8px 12px;
+    background: #0b0c14;
+    border: 1px solid var(--bordura);
+    border-radius: var(--raza);
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+#input-modal:focus { border-color: var(--accent-bordura); }
+#input-modal.invalid { border-color: var(--rosu); }
+
+/* Mesajul de eroare — apare când numele e invalid sau duplicat */
+#eroare-modal {
+    font-size: 11px;
+    color: var(--rosu);
+    min-height: 14px; /* rezervăm spațiu ca modalul să nu sară */
+}
+
+/* Butoanele Anulează / Confirmă */
+#butoane-modal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+#butoane-modal button {
+    padding: 6px 16px;
+    border: none;
+    border-radius: var(--raza);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+#buton-anuleaza-modal {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-mid);
+}
+#buton-anuleaza-modal:hover { background: rgba(255, 255, 255, 0.14); }
+
+#buton-confirma-modal {
+    background: var(--accent);
+    color: #fff;
+}
+#buton-confirma-modal:hover { background: #9370d8; }

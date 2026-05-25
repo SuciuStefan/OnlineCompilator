@@ -98,6 +98,11 @@
                 <i class="fa-solid fa-chevron-down sageata-sectiune" id="sageata-fisiere"></i>
             </div>
             <div class="panou-sectiune" id="panou-fisiere">
+                <!-- Buton New File — creează un fișier gol cu numele dat de utilizator -->
+                <div class="titlu-sectiune buton-upload" id="buton-fisier-nou">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <span>New File...</span>
+                </div>
                 <!-- Buton pentru încărcarea fișierelor de pe disc -->
                 <div class="titlu-sectiune buton-upload" id="buton-upload-fisier">
                     <i class="fa-solid fa-file-arrow-up"></i>
@@ -205,6 +210,27 @@ int main() {
     <footer id="subsol">@2025, December — Created by Suciu Dinu Ștefan</footer>
 
 </div><!-- /container-principal -->
+
+<!-- ── MODAL NUME FIȘIER ──────────────────────────────────────
+     Folosit atât la New File cât și la Rename.
+     JS îl afișează/ascunde prin clasa .vizibil pe #overlay-modal. -->
+<div id="overlay-modal">
+    <div id="modal-fisier">
+        <p id="titlu-modal">Nume fișier nou</p>
+        <input
+            type="text"
+            id="input-modal"
+            placeholder="ex: utils.cpp"
+            spellcheck="false"
+            autocomplete="off"
+        >
+        <p id="eroare-modal"></p>
+        <div id="butoane-modal">
+            <button id="buton-anuleaza-modal" type="button">Anulează</button>
+            <button id="buton-confirma-modal" type="button">Confirmă</button>
+        </div>
+    </div>
+</div>
 
 <script src="script.js"></script>
 </body>
